@@ -2,6 +2,7 @@ import pandas as pd
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Union
 
 
 app = FastAPI()
@@ -18,7 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 makeup=pd.read_csv("makeup_final_updated.csv")
-skincare=pd.read_csv("skincare_merged_final.csv")
+skincare=pd.read_csv("skincare_original.csv")
 
 searchList=pd.concat([makeup[["id","brand","name","img"]],skincare[["id","brand","name","img"]]])
 #searchList=searchList.set_index(["id"])
@@ -30,19 +31,16 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
-
 @app.get("/search/{q}",response_class=ORJSONResponse)
-async def search(q: str):
+async def search(q: Union[str, None] = None):
+      result=None
+      if q=="all_products":
+           result=searchList
+      else:
+          resultBrand=searchList[searchList["brand"].str.contains(q)]
+          resultName = searchList[searchList["name"].str.contains(q)]
 
-      resultBrand=searchList[searchList["brand"].str.contains(q)]
-      resultName = searchList[searchList["name"].str.contains(q)]
+          result=pd.concat([resultBrand,resultName])
 
-      result=pd.concat([resultBrand,resultName])
-      #result=resultBrand
       result=result.drop_duplicates()
-
-      #return ORJSONResponse(result.to_json())
-      return resultName.to_json(orient="records")
+      return result.to_json(orient="records")

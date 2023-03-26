@@ -1,0 +1,5 @@
+### Searching with query
+GET http://localhost:8000/search/mini
+
+### Searching without query
+GET http://localhost:8000/search/all_products
