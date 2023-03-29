@@ -21,7 +21,14 @@ app.add_middleware(
 makeup=pd.read_csv("makeup_final_updated.csv")
 skincare=pd.read_csv("skincare_original.csv")
 
-searchList=pd.concat([makeup[["id","brand","name","img"]],skincare[["id","brand","name","img"]]])
+makeup["tags"]=makeup["label"]+','+makeup["formulation"]+','+makeup["skin type"]
+makeup["rating"]=makeup["rating"].astype(str)
+
+skincare["tags"]= skincare["label"]+','+skincare["fomula"]+','+skincare["skin_type"]
+skincare["rating"]=""
+
+
+searchList=pd.concat([makeup[["id","brand","name","img","tags","rating"]],skincare[["id","brand","name","img","tags","rating"]]])
 #searchList=searchList.set_index(["id"])
 # mergeList=pd.concat(df,df2)
 # searchList=mergeList[["name","img"]]
