@@ -3,3 +3,7 @@ GET http://localhost:8000/search/mini
 
 ### Searching without query
 GET http://localhost:8000/search/all_products
+
+###Predict
+
+POST http://localhost:8000/predict

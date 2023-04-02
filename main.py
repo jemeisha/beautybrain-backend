@@ -37,9 +37,9 @@ searchList=pd.concat([makeup[["id","brand","name","img","tags","rating"]],skinca
 async def root():
     return {"message": "Hello World"}
 
-@app.post("/predict")
+@app.get("/predict")
 async def root():
-    return {"message": "Hello World"}
+    return searchList.head(100).to_json(orient="records")
 
 
 @app.get("/search/{q}",response_class=ORJSONResponse)
