@@ -1,8 +1,9 @@
 import pandas as pd
-from fastapi import FastAPI
+from fastapi import FastAPI,Request
 from fastapi.responses import ORJSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Union
+from recommender import recommend_products
 
 
 app = FastAPI()
@@ -37,8 +38,11 @@ searchList=pd.concat([makeup[["id","brand","name","img","tags","rating"]],skinca
 async def root():
     return {"message": "Hello World"}
 
-@app.get("/predict")
-async def root():
+@app.post("/predict")
+async def root(request:Request):
+    json_body=await request.json()
+    print(json_body)
+    products= recommend_products(json_body["answers"],json_body["imgData"],json_body["output"])
     return searchList.head(100).to_json(orient="records")
 
 

@@ -7,3 +7,10 @@ GET http://localhost:8000/search/all_products
 ###Predict
 
 POST http://localhost:8000/predict
+Content-Type: application/json
+
+{
+  "answers": [1,2,3],
+  "imgData": "123123",
+  "output": 1
+}
