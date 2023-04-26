@@ -66,16 +66,42 @@ def recommend_products(answers,img_data,output,makeup,skincare):
 
     products=makeup
 
-    if output==1:
-        products=skincare
-    elif output==2:
-        products=pd.concat([makeup,skincare])
+
+    output = int(output)
+    print("output: ",output)
+    print("output=1: ",output==1)
+
+    if output == 1:
+        print("skincare")
+        products = skincare
+    elif output == 2:
+        products = pd.concat([makeup, skincare])
 
     skin_type_filtered_products= products.loc[products["skin_type"]==skin_type]
     print("Product shape: ",products.shape)
-    print("SK: ",skin_type_filtered_products.shape)
+    print("SK: ", skin_type_filtered_products.shape)
 
-    return skin_type_filtered_products
+    # products based on answers
+    productsAll = pd.concat([makeup, skincare])
+    productsAns1= pd.DataFrame()
+
+    print("Answer1: ",answers)
+    if answers[0] == "oily":
+        productsAns1 = productsAll.loc[productsAll["skin_type"]=="oily"]
+    elif answers[0] == "normal":
+        productsAns1 = productsAll.loc[productsAll["skin_type"]=="normal"]
+    elif answers[0] == "dry":
+        productsAns1 = productsAll.loc[productsAll["skin_type"]=="dry"]
+
+    productsAns2=pd.DataFrame()
+    if answers[1] is not None:
+        productsAns2 = pd.concat([
+            makeup[makeup["concern"].str.contains(answers[1])]
+        ])
+
+
+
+    return skin_type_filtered_products,pd.concat([productsAns1,productsAns2])
 
     # print(answers)
     # print(output)

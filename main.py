@@ -28,7 +28,7 @@ makeup["tags"] = makeup["label"] + ',' + makeup["formulation"] + ',' + makeup["s
 makeup["rating"] = makeup["rating"].astype(str)
 
 skincare["tags"] = skincare["label"] + ',' + skincare["fomula"] + ',' + skincare["skin_type"]
-skincare["rating"] = ""
+skincare["rating"] = " "
 
 searchList = pd.concat([makeup[["id", "brand", "name", "img", "tags", "rating"]],
                         skincare[["id", "brand", "name", "img", "tags", "rating"]]])
@@ -47,7 +47,7 @@ async def root():
 async def root(request: Request):
     json_body = await request.json()
     # print(json_body)
-    products = recommend_products(
+    products,productsAns = recommend_products(
         json_body["answers"],
         json_body["imgData"],
         json_body["output"],
