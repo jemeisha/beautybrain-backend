@@ -82,7 +82,21 @@ def recommend_products(answers,img_data,output,makeup,skincare):
     print("SK: ", skin_type_filtered_products.shape)
 
     # products based on answers
-    productsAll = pd.concat([makeup, skincare])
+    productsAll = pd.DataFrame()
+    ansMakeup = makeup.iloc[0:0,:].copy()
+    ansSkincare = skincare.iloc[0:0,:].copy()
+
+    if output==0:
+        productsAll=makeup
+        ansMakeup=makeup
+    elif output==1:
+        productsAll=skincare
+        ansSkincare=skincare
+    else:
+        productsAll=pd.concat([makeup, skincare])
+        ansMakeup = makeup
+        ansSkincare = skincare
+
     productsAns1= pd.DataFrame()
 
     print("Answer1: ",answers)
@@ -93,15 +107,38 @@ def recommend_products(answers,img_data,output,makeup,skincare):
     elif answers[0] == "dry":
         productsAns1 = productsAll.loc[productsAll["skin_type"]=="dry"]
 
+    #print("k: ",makeup[makeup["concern"].str.contains(answers[1])])
     productsAns2=pd.DataFrame()
     if answers[1] is not None:
         productsAns2 = pd.concat([
-            makeup[makeup["concern"].str.contains(answers[1])]
+            ansMakeup[ansMakeup["concern"].str.contains(answers[1],case=False)],
+            ansSkincare[
+                ansSkincare["concern"].str.contains(answers[1],case=False) |
+                ansSkincare["concern2"].str.contains(answers[1],case=False) |
+                ansSkincare["concern3"].str.contains(answers[1],case=False)
+            ],
         ])
 
+    productsAns5 = pd.DataFrame()
+    if answers[4] is not None:
+        productsAns5 = pd.concat([
+            ansMakeup[ansMakeup["concern"].str.contains(answers[4], case=False)],
+            ansSkincare[
+                ansSkincare["concern"].str.contains(answers[4], case=False) |
+                ansSkincare["concern2"].str.contains(answers[4], case=False) |
+                ansSkincare["concern3"].str.contains(answers[4], case=False)
+                ],
+        ])
+    conc=pd.concat([productsAns1,productsAns2,productsAns5]).drop_duplicates()
+
+    print("proans1",productsAns1.shape)
+    print("proans2",productsAns2.shape)
+    print("proans5",productsAns5.shape)
+    print("conc",conc.shape)
 
 
-    return skin_type_filtered_products,pd.concat([productsAns1,productsAns2])
+
+    return skin_type_filtered_products,conc
 
     # print(answers)
     # print(output)

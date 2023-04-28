@@ -1,9 +1,12 @@
+import json
+
 import pandas as pd
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Query
 from fastapi.responses import ORJSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Union
 from recommender import recommend_products
+
 
 app = FastAPI()
 
@@ -21,6 +24,9 @@ app.add_middleware(
 makeup = pd.read_csv("makeup_final_updated.csv")
 skincare = pd.read_csv("skincare_original.csv")
 
+makeup["product_type"]="makeup"
+skincare["product_type"]="skincare"
+
 makeup["skin_type"]=makeup["skin_type"].str.lower()
 skincare["skin_type"]=skincare["skin_type"].str.lower()
 
@@ -29,6 +35,11 @@ makeup["rating"] = makeup["rating"].astype(str)
 
 skincare["tags"] = skincare["label"] + ',' + skincare["fomula"] + ',' + skincare["skin_type"]
 skincare["rating"] = " "
+
+makeup.fillna("",inplace=True)
+skincare.fillna("",inplace=True)
+
+
 
 searchList = pd.concat([makeup[["id", "brand", "name", "img", "tags", "rating"]],
                         skincare[["id", "brand", "name", "img", "tags", "rating"]]])
@@ -55,12 +66,24 @@ async def root(request: Request):
         skincare
     )
     #return searchList.head(100).to_json(orient="records")
-    return products.to_json(orient="records")
+    productJson=products.to_json(orient="records")
+    answerJson=productsAns.to_json(orient="records")
+    data={
+        "recommendedProducts":json.loads(productJson),
+        "answerBasedProducts":json.loads(answerJson)
+    }
+    return json.dumps(data)
 
 
 @app.get("/search/{q}", response_class=ORJSONResponse)
-async def search(q: Union[str, None] = None):
+async def search(
+                 q: Union[str, None] = None,
+                 category:str=Query(None),
+                 concern:str=Query(None)
+                  ):
     result = None
+    print("Category: ",category)
+    print("Concern: ",concern)
     if q == "all_products":
         result = searchList
     else:
