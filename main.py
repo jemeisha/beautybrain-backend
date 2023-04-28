@@ -40,9 +40,9 @@ makeup.fillna("",inplace=True)
 skincare.fillna("",inplace=True)
 
 
-
-searchList = pd.concat([makeup[["id", "brand", "name", "img", "tags", "rating"]],
-                        skincare[["id", "brand", "name", "img", "tags", "rating"]]])
+mergedList= pd.concat([makeup,skincare])
+searchList = pd.concat([makeup[["id", "brand", "name", "img", "tags", "rating","label","concern"]],
+                        skincare[["id", "brand", "name", "img", "tags", "rating","label","concern","concern2","concern3"]]])
 
 
 # searchList=searchList.set_index(["id"])
@@ -84,13 +84,33 @@ async def search(
     result = None
     print("Category: ",category)
     print("Concern: ",concern)
+
+    allProducts=searchList
+    if category != "all":
+        allProducts=allProducts[allProducts["label"].str.contains(category, case=False)]
+
+    if concern != "all":
+        allProducts=allProducts[
+            allProducts["concern"].str.contains(concern, case=False) |
+            allProducts["concern2"].str.contains(concern, case=False) |
+            allProducts["concern3"].str.contains(concern, case=False)
+        ]
+
     if q == "all_products":
-        result = searchList
+        result = allProducts
     else:
-        resultBrand = searchList[searchList["brand"].str.contains(q)]
-        resultName = searchList[searchList["name"].str.contains(q)]
+        resultBrand = allProducts[allProducts["brand"].str.contains(q)]
+        resultName = allProducts[allProducts["name"].str.contains(q)]
 
         result = pd.concat([resultBrand, resultName])
 
     result = result.drop_duplicates()
     return result.to_json(orient="records")
+
+@app.get("/product/{id}", response_class=ORJSONResponse)
+async def product(
+                 id: Union[str, None] = None
+                  ):
+    print("id: ", id)
+    filtered=mergedList.loc[mergedList["id"]==id]
+    return filtered.to_json(orient="records")
