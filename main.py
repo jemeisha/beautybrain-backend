@@ -8,6 +8,7 @@ from typing import Union
 from recommender import recommend_products
 
 
+
 app = FastAPI()
 
 origins = [
