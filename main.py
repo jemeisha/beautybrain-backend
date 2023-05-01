@@ -100,8 +100,8 @@ async def search(
     if q == "all_products":
         result = allProducts
     else:
-        resultBrand = allProducts[allProducts["brand"].str.contains(q)]
-        resultName = allProducts[allProducts["name"].str.contains(q)]
+        resultBrand = allProducts[allProducts["brand"].str.contains(q,case=False)]
+        resultName = allProducts[allProducts["name"].str.contains(q,case=False)]
 
         result = pd.concat([resultBrand, resultName])
 

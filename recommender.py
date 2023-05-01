@@ -115,6 +115,12 @@ def recommend_products(answers, img_data, output, makeup, skincare):
     elif output == 2:
         products = pd.concat([makeup_filtered, skincare])
 
+    # if acne_level== "1" or acne_level== "2" :
+    #     print("acne if")
+    #     products= products[
+    #         products["concern"].str.contains("Acne and Blemishes",case=False)
+    #     ]
+
     skin_type_filtered_products = products.loc[products["skin_type"] == skin_type]
     print("Product shape: ", products.shape)
     print("SK: ", skin_type_filtered_products.shape)
