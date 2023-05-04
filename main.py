@@ -59,7 +59,7 @@ async def root():
 async def root(request: Request):
     json_body = await request.json()
     # print(json_body)
-    products,productsAns = recommend_products(
+    products,productsAns, acneList = recommend_products(
         json_body["answers"],
         json_body["imgData"],
         json_body["output"],
@@ -69,9 +69,11 @@ async def root(request: Request):
     #return searchList.head(100).to_json(orient="records")
     productJson=products.to_json(orient="records")
     answerJson=productsAns.to_json(orient="records")
+    acneJson=acneList.to_json(orient="records")
     data={
         "recommendedProducts":json.loads(productJson),
-        "answerBasedProducts":json.loads(answerJson)
+        "answerBasedProducts":json.loads(answerJson),
+        "acneBasedProducts":json.loads(acneJson),
     }
     return json.dumps(data)
 

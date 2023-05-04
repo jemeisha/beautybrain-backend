@@ -8,14 +8,14 @@ from skin_tone.skin_tone2 import detectSkinTone
 import numpy as np
 from io import BytesIO
 
-skin_type_model = tf.keras.models.load_model('saved_model/my_model')
-acne_model = tf.keras.models.load_model('saved_model/acne_model')
+skin_type_model = tf.keras.models.load_model('saved_model/skin_type2')
+acne_model = tf.keras.models.load_model('saved_model/acne_model3')
 
 skin_type_class_names = ['dry', 'normal', 'oily']
 acne_class_names = ['0', '1', '2']
 
 
-def load_and_prep_image(img, img_shape=224):
+def load_and_prep_image(img, img_shape=299):
     # Decode it into a tensor
     img = tf.image.decode_jpeg(img)
     # Resize the image
@@ -26,12 +26,13 @@ def load_and_prep_image(img, img_shape=224):
 
 
 # Imports an image, makes a prediction with model and plots the image with the predicted class as the title.
-def classify_img(model, img, class_names=skin_type_class_names):
+def classify_img(model, img, class_names=skin_type_class_names,img_shape=299):
     # Import the image and preprocess it
-    img = load_and_prep_image(img)
+    img = load_and_prep_image(img,img_shape)
 
     # Make a prediction
-    pred = model.predict(tf.expand_dims(img, axis=0))
+    # pred = model.predict(tf.expand_dims(img, axis=0))
+    pred = model.predict(img[np.newaxis, ...])
 
     print("Pred: ", pred)
     # Add in logic for multi-class & get pred_class name
@@ -41,7 +42,7 @@ def classify_img(model, img, class_names=skin_type_class_names):
     #     pred_class = class_names[int(tf.round(pred[0]))]
     print("PredArgMax: ", int(tf.argmax(pred[0]).numpy()))
     pred_class = class_names[int(tf.argmax(pred[0]).numpy())]
-
+    print("class",pred_class)
     # print('Prediction Probabilities : ', pred[0])
     return pred_class
 
@@ -52,6 +53,8 @@ def recommend_products(answers, img_data, output, makeup, skincare):
     #      1-skincare
     #      2-both
 
+    output = int(output)
+
     print("ImageData: ", len(img_data))
     # while len(img_data) % 4 != 0:
     #     img_data += '='
@@ -60,9 +63,32 @@ def recommend_products(answers, img_data, output, makeup, skincare):
     skin_type = classify_img(skin_type_model, img_bytes, skin_type_class_names)
     print(skin_type)
 
-    acne_level = classify_img(acne_model, img_bytes, acne_class_names)
+    acne_level = classify_img(acne_model, img_bytes, acne_class_names,img_shape=299)
     print("Acne level: ", acne_level)
 
+    makeup["concern2"] = ""
+    makeup["concern3"] = ""
+
+    acne_list=makeup
+    if output == 1:
+        acne_list = skincare
+    elif output == 2:
+        acne_list = pd.concat([makeup, skincare])
+
+    if acne_level == "1" or acne_level == "2":
+        print("acne if")
+
+        acne_list= acne_list[
+            acne_list["concern"].str.contains("Acne and Blemishes", case=False) |
+            acne_list["concern"].str.contains("Blackheads and Whiteheads", case=False) |
+            acne_list["concern2"].str.contains("Acne and Blemishes", case=False) |
+            acne_list["concern2"].str.contains("Blackheads and Whiteheads", case=False) |
+            acne_list["concern3"].str.contains("Acne and Blemishes", case=False) |
+            acne_list["concern3"].str.contains("Blackheads and Whiteheads", case=False)
+        ]
+        print("Acne list shape:", acne_list.shape)
+    else:
+        acne_list= pd.DataFrame()
     # mean_colour_values = skin_detection(img_bytes)
     # print("Mean cv: ", mean_colour_values.shape)
     #
@@ -105,7 +131,7 @@ def recommend_products(answers, img_data, output, makeup, skincare):
             ]
     products = makeup_filtered
 
-    output = int(output)
+
     print("output: ", output)
     print("output=1: ", output == 1)
 
@@ -115,11 +141,6 @@ def recommend_products(answers, img_data, output, makeup, skincare):
     elif output == 2:
         products = pd.concat([makeup_filtered, skincare])
 
-    # if acne_level== "1" or acne_level== "2" :
-    #     print("acne if")
-    #     products= products[
-    #         products["concern"].str.contains("Acne and Blemishes",case=False)
-    #     ]
 
     skin_type_filtered_products = products.loc[products["skin_type"] == skin_type]
     print("Product shape: ", products.shape)
@@ -180,6 +201,6 @@ def recommend_products(answers, img_data, output, makeup, skincare):
     print("proans5", productsAns5.shape)
     print("conc", conc.shape)
 
-    return skin_type_filtered_products, conc
+    return skin_type_filtered_products, conc, acne_list
 
     print(len(img_bytes))
