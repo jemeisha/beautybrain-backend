@@ -7,6 +7,7 @@ from skin_tone.skin_tone_knn import skin_tone_knn
 from skin_tone.skin_tone2 import detectSkinTone
 import numpy as np
 from io import BytesIO
+from PIL import Image
 
 skin_type_model = tf.keras.models.load_model('saved_model/skin_type2')
 acne_model = tf.keras.models.load_model('saved_model/acne_model3')
@@ -14,8 +15,30 @@ acne_model = tf.keras.models.load_model('saved_model/acne_model3')
 skin_type_class_names = ['dry', 'normal', 'oily']
 acne_class_names = ['0', '1', '2']
 
+def png_to_jpeg(png_data):
+    # Open the PNG image from the byte array
+    image = Image.open(BytesIO(png_data))
 
+    # Convert the image to RGB format (if it's not already)
+    if image.mode != 'RGB':
+        image = image.convert('RGB')
+
+    # Create an in-memory buffer to receive the JPEG data
+    buffer = BytesIO()
+
+    # Save the JPEG data to the buffer
+    image.save(buffer, format='JPEG')
+
+    # Return the buffer contents as a byte array
+    return buffer.getvalue()
+def is_png(data):
+    return data[:8] == b'\x89PNG\r\n\x1a\n'
 def load_and_prep_image(img, img_shape=299):
+    if is_png(img):
+        print("png if")
+        img=png_to_jpeg(img)
+
+
     # Decode it into a tensor
     img = tf.image.decode_jpeg(img)
     # Resize the image
